@@ -128,7 +128,7 @@ systemctl enable influxdb.service
 L'archive de l'API REST de Compellent contient aussi un fichier PowerShell nommé <code>DellStorage.ApiCommandSet.psd1</code>.<br />
 C'est le fichier de l'API qui regroupe toutes les Commandlets.<br />
 Il faut faire un appel à ce fichier au chargement du script, sinon, aucune commande de l'API ne sera reconnue.</p>
-<pre><code>Import-Module "C:\Users\rudy.guyennot\Documents\SCRIPTING\PowerShell\Storage\DellStorage.ApiCommandSet.psd1"
+<pre><code>Import-Module "C:\Users\soolfly\Documents\SCRIPTING\PowerShell\Storage\DellStorage.ApiCommandSet.psd1"
 </code></pre>
 <blockquote>
 <p><strong>Note</strong>: <em>Le hash des mots de passe est fortemment recommandé.</em></p>
@@ -140,7 +140,7 @@ Se référer à la doc Microsoft : <a href="https://docs.microsoft.com/en-us/pow
 # DATA COLLECTOR CONNECTION
 ####################################
 #On initie la connection au DataCollector (STOREADM)
-$passDC = ConvertTo-SecureString (Get-Content C:\Users\rudy.guyennot\Documents\SCRIPTING\PowerShell\Storage\creds\DataCollector_passwd.txt)
+$passDC = ConvertTo-SecureString (Get-Content C:\Users\soolfly\Documents\SCRIPTING\PowerShell\Storage\creds\DataCollector_passwd.txt)
 $connDC = Connect-DellApiConnection -HostName "10.66.xx.xx" `
     -User "Admin" `
     -Password $passDC `
@@ -150,7 +150,7 @@ $connDC = Connect-DellApiConnection -HostName "10.66.xx.xx" `
 On peut alors interroger les contrôleurs à travers l'API et récupérer les valeurs.  </p>
 <p>La doc de l'API est fournie dans l'archive (cf lien ci-dessous) :   </p>
 <blockquote>
-<p><a href="file:///C:/Users/rudy.guyennot/Python/MonitorMySAN/resources/scripts/help/start.html">Getting Started with the Dell Storage API PowerShell SDK</a></p>
+<p><a href="file:///C:/Users/soolfly/Python/MonitorMySAN/resources/scripts/help/start.html">Getting Started with the Dell Storage API PowerShell SDK</a></p>
 </blockquote>
 <p>Les scripts PowerShell sont découpés en 3 branches :  </p>
 <ul>
