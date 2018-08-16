@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>MonitorMySAN</title>
+        <link href="css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/darcula.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="js/jquery-1.10.2.min.js" defer></script>
+        <script src="js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body class="homepage">
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href=".">MonitorMySAN</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="active">
+                                <a href=".">Home</a>
+                            </li>
+                            <li >
+                                <a href="about/">About</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="disabled">
+                                <a rel="next" >
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="about/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#monitormysan">MonitorMySAN</a></li>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#environnement">Environnement</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#mise-en-route">Mise en route</a></li>
+            <li><a href="#exploitation">Exploitation</a></li>
+            <li><a href="#rendu-final">Rendu final</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="monitormysan"><strong>MonitorMySAN</strong></h1>
+<h3 id="introduction"><strong>Introduction</strong></h3>
+<p>MonitorMySAN est un dashboard évolutif basé sur InfluxDB et Grafana pour monitorer le SAN de production (Compellent).<br />
+Les métriques sont récupérées en PowerShell depuis l'API REST fournie par DELL et injectées dans des bases Influx.<br />
+Le connecteur Influx va envoyer les métriques dans le dashboard Grafana (template de plusieurs graphs).</p>
+<h3 id="environnement"><strong>Environnement</strong></h3>
+<ul>
+<li><a href="https://www.debian.org/distrib/">Debian 9.5</a></li>
+<li><a href="https://docs.influxdata.com/influxdb/v1.6/introduction/installation/">InfluxDB</a></li>
+<li><a href="http://docs.grafana.org/installation/debian/">Grafana</a></li>
+<li><a href="https://code.visualstudio.com/download">Visual Studio Code</a></li>
+<li><a href="https://www.dell.com/support/home/fr/fr/frdhs1/drivers/driversdetails?driverid=ny43p">REST API for Dell Storage</a></li>
+<li><a href="https://www.mkdocs.org/#installation">MkDocs + Python3</a></li>
+<li><a href="https://mkdocs.github.io/mkdocs-bootswatch/">MkDocs Themes</a></li>
+</ul>
+<h3 id="installation"><strong>Installation</strong></h3>
+<p>Une fois InfluxDB et Grafana installés (cf docs ci-dessus), on démarre les services.<br />
+Démarrage automatique des services au reboot du serveur :</p>
+<p><em>Grafana</em></p>
+<pre><code>systemctl daemon-reload
+systemctl start grafana-server
+systemctl status grafana-server
+systemctl enable grafana-server.service
+</code></pre>
+<p><em>InfluxDB</em></p>
+<pre><code>systemctl daemon-reload
+systemctl start influxdb
+systemctl status influxdb
+systemctl enable influxdb.service
+</code></pre>
+<h3 id="configuration"><strong>Configuration</strong></h3>
+<hr />
+<p><strong>PowerShell</strong></p>
+<hr />
+<p>Une fois Visual Studio Code installé et l'API REST installée, il faut établir une connexion aux contrôleurs SAN Compellent.<br />
+L'archive de l'API REST de Compellent contient aussi un fichier PowerShell nommé <code>DellStorage.ApiCommandSet.psd1</code>.<br />
+C'est le fichier de l'API qui regroupe toutes les Commandlets.<br />
+Il faut faire un appel à ce fichier au chargement du script, sinon, aucune commande de l'API ne sera reconnue.</p>
+<pre><code>Import-Module "C:\Users\rudy.guyennot\Documents\SCRIPTING\PowerShell\Storage\DellStorage.ApiCommandSet.psd1"
+</code></pre>
+<blockquote>
+<p><strong>Note</strong>: <em>Le hash des mots de passe est fortemment recommandé.</em></p>
+</blockquote>
+<p>L'utilisation de la fonction "ConverTo-SecureString" facilite le hash de fichiers.<br />
+Se référer à la doc Microsoft : <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/convertto-securestring?view=powershell-5.1">ConvertTo-SecureString PowerShell method</a></p>
+<p>Extrait du script de connexion :</p>
+<pre><code>####################################
+# DATA COLLECTOR CONNECTION
+####################################
+#On initie la connection au DataCollector (STOREADM)
+$passDC = ConvertTo-SecureString (Get-Content C:\Users\rudy.guyennot\Documents\SCRIPTING\PowerShell\Storage\creds\DataCollector_passwd.txt)
+$connDC = Connect-DellApiConnection -HostName "10.66.xx.xx" `
+    -User "Admin" `
+    -Password $passDC `
+    -Save "DataCollector" -Default
+</code></pre>
+<p>A partir de là, lorsqu'on charge le script, on est connecté au Data Collector sur STOREADM.<br />
+On peut alors interroger les contrôleurs à travers l'API et récupérer les valeurs.  </p>
+<p>La doc de l'API est fournie dans l'archive (cf lien ci-dessous) :   </p>
+<blockquote>
+<p><a href="file:///C:/Users/rudy.guyennot/Python/MonitorMySAN/resources/scripts/help/start.html">Getting Started with the Dell Storage API PowerShell SDK</a></p>
+</blockquote>
+<p>Les scripts PowerShell sont découpés en 3 branches :  </p>
+<ul>
+<li>master</li>
+<li>preprod</li>
+<li>dev</li>
+</ul>
+<p>Ils sont disponibles ici : <code>MonitorMySAN\resources\scripts</code>.</p>
+<hr />
+<p><strong>InfluxDB</strong></p>
+<hr />
+<p>Un prompt Influx est accessible en local <code>port 8086</code> sur le serveur via la commande <code>influx</code>.  </p>
+<p><em>Création d'une base</em></p>
+<pre><code>root@givememetrics:~# influx
+Connected to http://localhost:8086 version 1.6.1
+InfluxDB shell version: 1.6.1
+
+&gt; CREATE DATABASE compellent
+
+&gt; quit
+</code></pre>
+<p><em>Affichage des bases</em></p>
+<pre><code>&gt; SHOW DATABASES
+name: databases
+name
+----
+_internal
+compellent
+
+&gt; quit
+</code></pre>
+<hr />
+<p><strong>Grafana</strong></p>
+<hr />
+<p>Par défaut, Grafana écoute sur le port HTTP <code>3000</code>. L'utilisateur et le mot de passe par défaut est <code>admin</code>.<br />
+Le portail nous invite alors a modifier le mot de passe du compte <code>admin</code>.  </p>
+<p>On arrive sur la page d'accueil du portail. On peut maintenant ajouter une <code>Data Source</code>.<br />
+Se référer à la doc de Grafana <a href="http://docs.grafana.org/features/datasources/influxdb/">Adding data source</a></p>
+<p>Informations de connexion à InfluxDB :</p>
+<pre><code>Name: compellent
+Type: InfluxDB
+Url: http://localhost:8086/
+Database: compellent
+User: admin
+Password: ********
+</code></pre>
+<p>Lorsqu'on clique sur <code>Save &amp; Test</code> une notification s'affiche en vert pour valider la connexion.<br />
+A partir de là on peut ajouter un nouveau dashboard. Le plus simple est d'importer un template déjà fait.<br />
+Un template au format JSON est disponible dans <code>MonitorMySAN\resources\grafana_templates</code>.  </p>
+<h3 id="mise-en-route"><strong>Mise en route</strong></h3>
+<hr />
+<p><strong> Récupération et insertion des métriques dans Influx </strong></p>
+<hr />
+<p>Le script contient une fonction par type de métrique, qui correspond à un élément distinct qui compose le stockage SAN.<br />
+Une métrique peut être de plusieurs types :  </p>
+<ul>
+<li>contrôleur</li>
+<li>chassis</li>
+<li>disque</li>
+<li>iops</li>
+<li>latence</li>
+<li>...etc</li>
+</ul>
+<p>Exemple d'une fonction qui récupère le nom et le modèle des chassis rattachés à Dell Storage Manager :  </p>
+<pre><code>function get-ListChassis () 
+{
+    $chassis = @{}
+    $ListControlers = Get-DellScController -Connection $connDC
+        foreach ($controler in $ListControlers) {
+            $name = $controler.Model.Name
+            $name = $name.substring(3)
+            $chassis.Add([string]$controler.HardwareSerialNumber,"$name")
+        }
+    return $chassis
+}
+</code></pre>
+<p>Le retour de la fonction : </p>
+<pre><code>Name                           Value
+----                           -----
+25893                          SC8000
+25892                          SC8000
+266955                         3020
+56274                          SC4020
+266954                         3020
+56275                          SC4020
+</code></pre>
+<hr />
+<p><strong> Formatage des mesures (ou measurements) au format timestamp pour InfluxDB</strong></p>
+<hr />
+<p>Les bases InfluxDB n'interprètent que des données au format time-series (timestamp).<br />
+Il faut donc convertir ce qu'on récupère, dans ce format, avant de les injecter.  </p>
+<blockquote>
+<p>Voir la documentation Influx : <a href="https://docs.influxdata.com/influxdb/v1.6/introduction/getting-started/#writing-and-exploring-data">Writing and exploring data</a></p>
+</blockquote>
+<p>Structure d'une fonction qui converti les valeurs en timestamp et qui injecte dans Influx : </p>
+<pre><code>foreach ($volume in $ListAllVolumes) {
+
+    # Pour chaque volume, on récupère les iops sur la dernière valeur de la journée
+    $historical = New-DellHistoricalFilter -FilterTime "LastDay" 
+    $iops = Get-DellScVolumeHistoricalIoUsage  $volume.InstanceId -HistoricalFilter $historical
+
+    #conversion de la date en timestamp pour influxdb
+    $metricsTime = $iops[-1].Time
+    $timestamp = [String]((New-Timespan -Start $unixDateStart -End ($metricsTime)).TotalMilliseconds) + "000000"
+
+    # Récupère le temps d'execution de la requête
+    $GatheringTime = (New-Timespan -Start $GatheringStartDate -End (Get-Date)).TotalSeconds
+
+    # On formate la mesure "volume" à injecter dans InfluxDB
+    $influxData = "volumes,controler=$($volume.ScSerialNumber),name=$($volume.Name.Replace(' ','-'))," + 
+                  "readiops=$($iops[-1].ReadIops),writeiops=$($iops[-1].WriteIops)," +
+                  "readlatency=$($iops[-1].ReadLatency),writelatency=$($iops[-1].WriteLatency)," +
+                  "qoslatency=$($iops[-1].QosLatency),readKbPerSec=$($iops[-1].ReadKbPerSecond)," +
+                  "writeKbPerSec=$($iops[-1].WriteKbPerSecond),totalKbPerSec=$($iops[-1].TotalKbPerSecond)," +
+                  $timestamp"
+
+    $Metrics += $influxData
+    Write-Host $influxData
+}
+</code></pre>
+<p>Injection des données avec requête POST (HTTP API)</p>
+<pre><code>$pushMetrics = Invoke-RestMethod -Uri $InfluxURI -Body ($Metrics -Join "`n") -Method Post -ErrorAction Continue
+$pushMetrics
+</code></pre>
+<p>On peut afficher les mesures injectées dans les bases Influx depuis le prompt avec des requêtes InfluxQL : </p>
+<pre><code>&gt; show databases
+name: databases
+name
+----
+_internal
+compellent
+
+&gt; use compellent
+Using database compellent
+
+&gt; show measurements
+name: measurements
+name
+----
+controlers
+volumes
+
+&gt; SELECT * FROM volumes
+
+name: volumes
+time                controler  name        readKbSec readiops readlat totalKbSec writeKbSec writeiops writelat
+----                ---------  ----        --------- -------- ------- ---------- ---------- --------- --------
+1534255792000000000 25892      25892-BAR   14        0        0       57         43         5         1978
+1534255792000000000 25892      25892-C1    155       10       4467    1170       1015       75        15709
+1534255792000000000 25892      25892-C10   27        5        3014    34         7          11        330
+1534255792000000000 25892      25892-C100  100       8        8559    1205       1105       62        2406
+1534255792000000000 25892      25892-C101  1150      84       2692    2291       1141       92        1838
+</code></pre>
+<h3 id="exploitation"><strong>Exploitation</strong></h3>
+<hr />
+<p><strong> Injection automatique des métriques  </strong></p>
+<hr />
+<p>Le moyen le plus simple est d'utiliser le Task Scheduler de Windows pour déclencher le script toutes les 5min.<br />
+Il n'est de toutes façons pas possible d'avoir des valeurs datant de moins de 5 minutes (limite de l'API).  </p>
+<p>L'export au format XML du plannificateur de tâches Windows :  </p>
+<blockquote>
+<p>Pour l'importer, Task Scheduler &gt; Bibliothèque du plannificateur &gt; clique-droit &gt; Importer une tâche</p>
+</blockquote>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-16"?&gt;
+&lt;Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"&gt;
+  &lt;RegistrationInfo&gt;
+    &lt;Date&gt;2017-11-08T12:03:28.8002048&lt;/Date&gt;
+    &lt;Author&gt;eolaslan\rudy.guyennot&lt;/Author&gt;
+    &lt;Description&gt;Alimentation InfluxDB&lt;/Description&gt;
+    &lt;URI&gt;\Gathering_Metrics&lt;/URI&gt;
+  &lt;/RegistrationInfo&gt;
+  &lt;Triggers&gt;
+    &lt;TimeTrigger&gt;
+      &lt;Repetition&gt;
+        &lt;Interval&gt;PT5M&lt;/Interval&gt;
+        &lt;StopAtDurationEnd&gt;false&lt;/StopAtDurationEnd&gt;
+      &lt;/Repetition&gt;
+      &lt;StartBoundary&gt;2017-11-08T12:02:32&lt;/StartBoundary&gt;
+      &lt;ExecutionTimeLimit&gt;PT30M&lt;/ExecutionTimeLimit&gt;
+      &lt;Enabled&gt;true&lt;/Enabled&gt;
+    &lt;/TimeTrigger&gt;
+  &lt;/Triggers&gt;
+  &lt;Principals&gt;
+    &lt;Principal id="Author"&gt;
+      &lt;UserId&gt;S-1-5-21-4025830835-1958220758-3091706327-2207&lt;/UserId&gt;
+      &lt;LogonType&gt;Password&lt;/LogonType&gt;
+      &lt;RunLevel&gt;LeastPrivilege&lt;/RunLevel&gt;
+    &lt;/Principal&gt;
+  &lt;/Principals&gt;
+  &lt;Settings&gt;
+    &lt;MultipleInstancesPolicy&gt;IgnoreNew&lt;/MultipleInstancesPolicy&gt;
+    &lt;DisallowStartIfOnBatteries&gt;true&lt;/DisallowStartIfOnBatteries&gt;
+    &lt;StopIfGoingOnBatteries&gt;false&lt;/StopIfGoingOnBatteries&gt;
+    &lt;AllowHardTerminate&gt;true&lt;/AllowHardTerminate&gt;
+    &lt;StartWhenAvailable&gt;false&lt;/StartWhenAvailable&gt;
+    &lt;RunOnlyIfNetworkAvailable&gt;false&lt;/RunOnlyIfNetworkAvailable&gt;
+    &lt;IdleSettings&gt;
+      &lt;StopOnIdleEnd&gt;true&lt;/StopOnIdleEnd&gt;
+      &lt;RestartOnIdle&gt;false&lt;/RestartOnIdle&gt;
+    &lt;/IdleSettings&gt;
+    &lt;AllowStartOnDemand&gt;true&lt;/AllowStartOnDemand&gt;
+    &lt;Enabled&gt;true&lt;/Enabled&gt;
+    &lt;Hidden&gt;false&lt;/Hidden&gt;
+    &lt;RunOnlyIfIdle&gt;false&lt;/RunOnlyIfIdle&gt;
+    &lt;DisallowStartOnRemoteAppSession&gt;false&lt;/DisallowStartOnRemoteAppSession&gt;
+    &lt;UseUnifiedSchedulingEngine&gt;true&lt;/UseUnifiedSchedulingEngine&gt;
+    &lt;WakeToRun&gt;true&lt;/WakeToRun&gt;
+    &lt;ExecutionTimeLimit&gt;PT72H&lt;/ExecutionTimeLimit&gt;
+    &lt;Priority&gt;7&lt;/Priority&gt;
+  &lt;/Settings&gt;
+  &lt;Actions Context="Author"&gt;
+    &lt;Exec&gt;
+      &lt;Command&gt;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&lt;/Command&gt;
+      &lt;Arguments&gt;-Command "C:\Users\rudy.guyennot\Documents\SCRIPTING\PowerShell\Metrics_Compellent\Gathering_Metrics.ps1"&lt;/Arguments&gt;
+    &lt;/Exec&gt;
+  &lt;/Actions&gt;
+&lt;/Task&gt;
+</code></pre>
+<h3 id="rendu-final"><strong>Rendu final</strong></h3>
+<blockquote>
+<p>Note : il faut un minimum de 10 points pour que les graphs s'affichent</p>
+</blockquote>
+<p><img alt="Screenshot" src="img/screenshot.png" /></p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js" defer></script>
+        <script src="search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.0
+Build Date UTC : 2018-08-16 12:55:12
+-->
